@@ -2,146 +2,101 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>상하이 여행 일정 지도</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>상하이 여행 일정 지도 · UX 개선판 v5 GPS</title>
 <link rel="preconnect" href="https://unpkg.com">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <style>
-  :root{
-    --ink:#1c2430; --muted:#6d7684; --paper:#f6f4ef; --card:#ffffff;
-    --line:#e8e3d9; --accent:#d7482f; --a:#d7482f; --b:#2b6f9f;
-    --d1:#2f7d5a; --d2:#c34e36; --d3:#2c738b; --shadow:0 16px 48px rgba(30,35,40,.12);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;font-family:Inter,"Apple SD Gothic Neo","Noto Sans KR",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper)}
-  body{overflow:hidden}
-  .app{height:100%;display:grid;grid-template-columns:minmax(390px,480px) 1fr}
-  .panel{position:relative;z-index:2;background:rgba(246,244,239,.97);border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
-  .head{padding:22px 24px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.52);backdrop-filter:blur(14px)}
-  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:800}
-  h1{font-size:27px;line-height:1.15;margin:7px 0 8px;letter-spacing:-.04em}
-  .switch{display:flex;gap:8px;margin-top:14px}
-  .switch button,.dayfilter button{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:9px 13px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:.2s}
-  .switch button.active{color:#fff;border-color:transparent;background:var(--accent);box-shadow:0 6px 18px rgba(0,0,0,.12)}
-  .dayfilter{display:flex;gap:7px;padding:12px 24px 10px;overflow:auto;border-bottom:1px solid var(--line);background:rgba(246,244,239,.97);scrollbar-width:none}
-  .dayfilter::-webkit-scrollbar{display:none}
-  .dayfilter button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
-  .dayfilter button.active{background:var(--dayColor,#202933);color:#fff;border-color:var(--dayColor,#202933);box-shadow:0 5px 14px rgba(24,30,36,.12)}
-  .filter-dot{width:7px;height:7px;border-radius:50%;background:var(--dayColor,#202933);flex:0 0 auto}
-  .dayfilter button.active .filter-dot{background:#fff}
-  .timeline{overflow:auto;padding:14px 18px 100px;scroll-behavior:smooth}
-  .day{margin-bottom:22px}
-  .day-title{display:flex;align-items:baseline;justify-content:space-between;padding:4px 7px 9px}
-  .day-title strong{font-size:16px}.day-title span{font-size:11px;color:var(--muted);font-weight:700}
-  .event{display:grid;grid-template-columns:54px 10px 1fr;gap:9px;padding:8px 8px;border-radius:13px;cursor:pointer;transition:.18s;border:1px solid transparent}
-  .event:hover{background:#fff;border-color:#ebe6dc;transform:translateY(-1px)}
-  .event.active-event{background:#fff;border-color:var(--eventColor,#999);box-shadow:0 7px 20px rgba(30,35,40,.10)}
-  .event.no-map{cursor:help;opacity:.82}
-  .time{font-size:12px;font-variant-numeric:tabular-nums;color:#555f6d;font-weight:800;padding-top:2px}
-  .dot{width:9px;height:9px;border-radius:50%;margin-top:5px;border:2px solid #fff;box-shadow:0 0 0 2px var(--eventColor,#999)}
-  .event.no-map .dot{background:transparent!important;box-shadow:0 0 0 1px #a9adb4;border:2px solid transparent}
-  .copy{min-width:0}
-  .copy b{font-size:13px;line-height:1.45;display:block;letter-spacing:-.01em}
-  .copy small{display:block;color:var(--muted);font-size:11px;line-height:1.45;margin-top:2px}
-  .tag{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:6px;font-size:9px;vertical-align:1px;background:#f1eee8;color:#7a7065;font-weight:800}
-  #map{height:100%;width:100%;background:#ddd9d0}
-  .leaflet-control-attribution{font-size:9px!important}
-  .leaflet-popup-content-wrapper{border-radius:15px;box-shadow:var(--shadow)}
-  .leaflet-popup-content{margin:13px 15px;min-width:220px;max-width:280px}
-  .pop-place{font-size:14px;font-weight:900;margin:0 0 3px}
-  .pop-address{font-size:10px;color:#7a8290;line-height:1.45;margin-bottom:8px}
-  .pop-visit{padding:7px 7px 7px 9px;border-top:1px solid #eee9e0;border-left:3px solid var(--visitColor,#999);border-radius:0 8px 8px 0;cursor:pointer;transition:background .16s,transform .16s}
-  .pop-visit:first-of-type{border-top:0}
-  .pop-visit:hover{background:#f7f3eb;transform:translateX(2px)}
-  .pop-time{font-size:10px;color:#7a8290;font-weight:800;letter-spacing:.02em}
-  .pop-title{font-size:12px;font-weight:900;margin:2px 0}
-  .pop-note{font-size:10px;color:#657080;line-height:1.4}
-  .num-marker{position:relative;display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;border:2px solid #fff;color:#fff;font-size:11px;font-weight:900;box-shadow:0 4px 12px rgba(0,0,0,.28)}
-  .multi-badge{position:absolute;right:-7px;top:-7px;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:#202933;border:1.5px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;line-height:1}
-  .map-title{position:absolute;z-index:600;top:18px;left:18px;background:rgba(255,255,255,.92);border:1px solid rgba(225,220,210,.95);padding:10px 12px;border-radius:13px;box-shadow:0 8px 24px rgba(25,30,35,.12);backdrop-filter:blur(10px);pointer-events:none}
-  .map-title b{display:block;font-size:12px}
-
-  .overlay-toolbar{position:absolute;z-index:650;top:18px;right:18px;display:flex;gap:8px;padding:8px;border-radius:16px;background:rgba(255,255,255,.94);border:1px solid rgba(225,220,210,.95);box-shadow:0 8px 24px rgba(25,30,35,.12);backdrop-filter:blur(10px)}
-  .overlay-tool{appearance:none;width:42px;height:42px;border-radius:12px;border:1px solid #e7e1d6;background:#fff;color:#556170;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.18s;box-shadow:0 1px 0 rgba(255,255,255,.6) inset}
-  .overlay-tool:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(28,36,48,.08)}
-  .overlay-tool.active{color:#fff;border-color:transparent;background:var(--toolColor,#202933);box-shadow:0 8px 18px color-mix(in srgb, var(--toolColor,#202933) 28%, transparent)}
-  .overlay-tool svg{width:21px;height:21px;display:block;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-  .overlay-note{position:absolute;z-index:620;top:76px;right:18px;padding:7px 10px;border-radius:11px;background:rgba(255,255,255,.92);border:1px solid rgba(225,220,210,.95);font-size:10px;line-height:1.35;color:#657080;box-shadow:0 8px 20px rgba(25,30,35,.10);backdrop-filter:blur(8px);pointer-events:none}
-  .poi-marker{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--poiColor,#556170);color:#fff;border:2px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.2)}
-  .poi-marker svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-  .poi-pop-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-  .poi-pop-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--poiColor,#556170);color:#fff;flex:0 0 auto}
-  .poi-pop-icon svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-  .poi-pop-title{font-size:13px;font-weight:900;line-height:1.25}
-  .poi-pop-branch{font-size:10px;color:#7a8290;font-weight:800;margin-top:2px}
-  .poi-pop-address{font-size:10px;color:#657080;line-height:1.45;margin-top:6px}
-  .poi-pop-note{font-size:10px;color:#657080;line-height:1.45;margin-top:5px}
-  .poi-pop-type{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;background:#f3efe6;color:#5f6b79;font-size:9px;font-weight:900;letter-spacing:.03em;text-transform:uppercase}
-  .toast{position:fixed;z-index:1300;left:50%;bottom:26px;transform:translate(-50%,18px);max-width:min(430px,calc(100vw - 32px));padding:11px 14px;border-radius:12px;background:rgba(32,41,51,.94);color:#fff;font-size:11px;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:.2s}
-  .toast.show{opacity:1;transform:translate(-50%,0)}
-  .map-wrap{position:relative;min-width:0}
-  .panel-close,.mobile-schedule-btn,.mobile-backdrop{display:none}
-  @media(max-width:840px){
-    html,body{height:100%;height:100dvh;overflow:hidden}
-    body{background:#ddd9d0}
-    .app{display:block;height:100%;height:100dvh;min-height:0}
-    .map-wrap{position:absolute;inset:0;height:100%;width:100%}
-    #map{height:100%;width:100%}
-    .panel{position:fixed;z-index:1100;left:0;right:0;bottom:0;top:auto;height:min(78dvh,720px);min-width:0;border:0;border-top:1px solid var(--line);border-radius:22px 22px 0 0;box-shadow:0 -18px 48px rgba(20,25,30,.22);transform:translateY(calc(100% + 24px));transition:transform .28s cubic-bezier(.22,.8,.3,1);pointer-events:none;overflow:hidden;background:rgba(246,244,239,.985)}
-    .panel.open{transform:translateY(0);pointer-events:auto}
-    .head{position:relative;padding:17px 58px 12px 18px;flex:0 0 auto;background:rgba(255,255,255,.88)}
-    .eyebrow{font-size:10px}
-    h1{font-size:21px;margin:5px 0 0}
-    .switch{margin-top:11px;gap:7px}
-    .switch button{padding:8px 12px}
-    .panel-close{display:flex;position:absolute;right:14px;top:14px;width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--ink);align-items:center;justify-content:center;font:inherit;font-size:24px;line-height:1;cursor:pointer;z-index:2}
-    .dayfilter{position:sticky;top:0;z-index:3;padding:10px 14px 9px;box-shadow:0 5px 16px rgba(30,35,40,.07);backdrop-filter:blur(14px);flex:0 0 auto}
-    .dayfilter button{padding:8px 11px}
-    .timeline{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:10px 10px calc(28px + env(safe-area-inset-bottom));scroll-behavior:smooth}
-    .day{margin-bottom:18px}
-    .day-title{padding:4px 8px 7px}
-    .event{grid-template-columns:50px 10px 1fr;padding:9px 8px;gap:8px}
-    .event:hover{transform:none}
-    .copy b{font-size:13px}
-    .copy small{font-size:10.5px}
-    .map-title{top:calc(12px + env(safe-area-inset-top));left:12px;padding:9px 11px;border-radius:12px}
-    .map-title b{font-size:11px}
-
-    .overlay-toolbar{top:calc(12px + env(safe-area-inset-top));right:12px;padding:7px;gap:7px;border-radius:14px}
-    .overlay-tool{width:40px;height:40px;border-radius:11px}
-    .overlay-note{top:calc(62px + env(safe-area-inset-top));right:12px;font-size:9.5px;max-width:170px}
-    .mobile-backdrop{display:block;position:fixed;z-index:1080;inset:0;background:rgba(20,25,30,.28);opacity:0;pointer-events:none;transition:opacity .22s}
-    .mobile-backdrop.show{opacity:1;pointer-events:auto}
-    .mobile-schedule-btn{display:flex;position:fixed;z-index:1050;left:16px;bottom:calc(18px + env(safe-area-inset-bottom));height:48px;min-width:82px;padding:0 18px;border:0;border-radius:24px;background:#202933;color:#fff;align-items:center;justify-content:center;font:inherit;font-size:13px;font-weight:900;box-shadow:0 10px 28px rgba(20,25,30,.28);cursor:pointer;transition:opacity .18s,transform .18s}
-    body.schedule-open .mobile-schedule-btn{opacity:0;transform:translateY(8px);pointer-events:none}
-    .leaflet-control-zoom{margin-bottom:calc(16px + env(safe-area-inset-bottom))!important}
-    .toast{bottom:calc(78px + env(safe-area-inset-bottom));z-index:1400}
-    body.schedule-open .toast{bottom:calc(min(78dvh,720px) - 56px)}
-  }
+:root{
+  --ink:#1c2430;--muted:#697382;--paper:#f6f4ef;--card:#fff;--line:#e8e3d9;
+  --accent:#d7482f;--d1:#2f7d5a;--d2:#c34e36;--d3:#2c738b;
+  --shadow:0 16px 48px rgba(30,35,40,.12);--focus:0 0 0 3px rgba(44,115,139,.24)
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,"Apple SD Gothic Neo","Noto Sans KR",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper)}
+body{overflow:hidden}
+button{font:inherit}
+button:focus-visible,[tabindex]:focus-visible{outline:none;box-shadow:var(--focus)}
+.app{height:100%;display:grid;grid-template-columns:minmax(390px,480px) 1fr}
+.panel{position:relative;z-index:900;background:rgba(246,244,239,.98);border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.sheet-grabber{display:none}
+.head{padding:22px 24px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.62);backdrop-filter:blur(14px);flex:0 0 auto}
+h1{font-size:27px;line-height:1.15;margin:0 0 8px;letter-spacing:-.04em}
+.switch{display:flex;gap:8px;margin-top:14px}
+.switch button,.dayfilter button{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:9px 13px;font-size:12px;font-weight:800;cursor:pointer;transition:.18s}
+.switch button.active{color:#fff;border-color:transparent;background:var(--accent);box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.dayfilter{display:flex;gap:7px;padding:12px 24px 10px;overflow-x:auto;overflow-y:hidden;border-bottom:1px solid var(--line);background:rgba(246,244,239,.97);scrollbar-width:none;flex:0 0 auto}
+.dayfilter::-webkit-scrollbar{display:none}
+.dayfilter button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.dayfilter button.active{background:var(--dayColor,#202933);color:#fff;border-color:var(--dayColor,#202933);box-shadow:0 5px 14px rgba(24,30,36,.12)}
+.filter-dot{width:7px;height:7px;border-radius:50%;background:var(--dayColor,#202933);flex:0 0 auto}.dayfilter button.active .filter-dot{background:#fff}
+.timeline{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:14px 18px 100px;scroll-behavior:smooth;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#c8c1b6 transparent}
+.timeline::-webkit-scrollbar{width:10px}.timeline::-webkit-scrollbar-track{background:transparent}.timeline::-webkit-scrollbar-thumb{background:#c8c1b6;border:3px solid transparent;border-radius:999px;background-clip:padding-box}.timeline::-webkit-scrollbar-thumb:hover{background:#aaa297;border:3px solid transparent;background-clip:padding-box}
+.day{margin-bottom:22px}.day-title{display:flex;align-items:baseline;justify-content:space-between;padding:4px 7px 9px}.day-title strong{font-size:16px}.day-title span{font-size:11px;color:var(--muted);font-weight:700}
+.event{position:relative;display:grid;grid-template-columns:1fr 34px;gap:4px;border:1px solid transparent;border-radius:14px;transition:.18s}
+.event:hover{background:#fff;border-color:#ebe6dc}.event.active-event{background:#fff;border-color:var(--eventColor,#999);box-shadow:0 7px 20px rgba(30,35,40,.10)}.event.completed{opacity:.62}
+.event-main{appearance:none;border:0;background:transparent;color:inherit;text-align:left;display:grid;grid-template-columns:54px 10px 1fr;gap:9px;width:100%;padding:9px 4px 9px 8px;border-radius:13px;cursor:pointer}
+.event-main:hover{background:transparent}.event-actions-btn{appearance:none;border:0;background:transparent;color:#76808d;width:32px;height:32px;border-radius:9px;align-self:center;cursor:pointer;font-size:18px;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center}.event-actions-btn:hover,.event-actions-btn[aria-expanded="true"]{background:#f0ece4;color:#202933}
+.event.no-map .event-main{cursor:help}.time{font-size:12px;font-variant-numeric:tabular-nums;color:#555f6d;font-weight:800;padding-top:2px}.dot{width:9px;height:9px;border-radius:50%;margin-top:5px;border:2px solid #fff;box-shadow:0 0 0 2px var(--eventColor,#999)}.event.no-map .dot{background:transparent!important;box-shadow:0 0 0 1px #a9adb4;border:2px solid transparent}
+.copy{min-width:0}.copy b{font-size:13px;line-height:1.45;display:block;letter-spacing:-.01em}.copy small{display:block;color:var(--muted);font-size:11px;line-height:1.45;margin-top:2px}.tag{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:6px;font-size:9px;vertical-align:1px;background:#f1eee8;color:#7a7065;font-weight:800}.completed .copy b{text-decoration:line-through;text-decoration-thickness:1px}
+.option-group{margin:5px 0 9px;padding:8px;border:1px solid #e6dfd3;border-radius:16px;background:rgba(255,255,255,.46)}.option-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:1px 4px 7px}.option-head strong{font-size:11px}.option-head span{font-size:10px;color:var(--muted);font-weight:700}.option-group .event+.event{margin-top:3px}.option-group .event.option-selected{background:#fff;border-color:var(--eventColor,#999)}.option-check{display:inline-flex;margin-left:6px;padding:2px 6px;border-radius:999px;background:#202933;color:#fff;font-size:9px;font-weight:900;vertical-align:1px}
+.action-menu{position:fixed;z-index:1600;width:188px;padding:6px;background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:0 18px 44px rgba(25,30,35,.18)}.action-menu[hidden]{display:none}.action-menu button{display:flex;width:100%;align-items:center;gap:8px;border:0;background:transparent;color:#27313d;text-align:left;padding:9px 10px;border-radius:9px;font-size:12px;font-weight:750;cursor:pointer}.action-menu button:hover,.action-menu button:focus-visible{background:#f5f1e9}.action-menu .danger{color:#845442}
+#map{height:100%;width:100%;background:#ddd9d0}.map-wrap{position:relative;min-width:0}.leaflet-control-attribution{font-size:9px!important}.leaflet-popup-content-wrapper{border-radius:15px;box-shadow:var(--shadow)}.leaflet-popup-content{margin:13px 15px;min-width:220px;max-width:280px}.pop-place{font-size:14px;font-weight:900;margin:0 0 3px}.pop-address{font-size:10px;color:#7a8290;line-height:1.45;margin-bottom:8px}.pop-visit{padding:7px 7px 7px 9px;border-top:1px solid #eee9e0;border-left:3px solid var(--visitColor,#999);border-radius:0 8px 8px 0;cursor:pointer;transition:background .16s,transform .16s}.pop-visit:first-of-type{border-top:0}.pop-visit:hover{background:#f7f3eb;transform:translateX(2px)}.pop-time{font-size:10px;color:#7a8290;font-weight:800}.pop-title{font-size:12px;font-weight:900;margin:2px 0}.pop-note{font-size:10px;color:#657080;line-height:1.4}
+.num-marker{position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;border:2px solid #fff;color:#fff;font-size:11px;font-weight:900;box-shadow:0 4px 12px rgba(0,0,0,.26);font-variant-numeric:tabular-nums}.multi-badge{position:absolute;right:-7px;top:-7px;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:#202933;border:1.5px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;line-height:1}
+.map-title{position:absolute;z-index:600;top:18px;left:18px;background:rgba(255,255,255,.94);border:1px solid rgba(225,220,210,.95);padding:10px 12px;border-radius:13px;box-shadow:0 8px 24px rgba(25,30,35,.12);backdrop-filter:blur(10px);pointer-events:none}.map-title b{display:block;font-size:12px}
+.poi-control{position:absolute;z-index:680;top:18px;right:18px}.poi-menu-btn{appearance:none;border:1px solid rgba(225,220,210,.95);background:rgba(255,255,255,.95);color:#2a3440;padding:10px 12px;border-radius:13px;box-shadow:0 8px 24px rgba(25,30,35,.12);backdrop-filter:blur(10px);font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:7px}.poi-count{display:none;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#202933;color:#fff;align-items:center;justify-content:center;font-size:9px}.poi-count.show{display:inline-flex}.poi-menu{position:absolute;top:48px;right:0;width:190px;padding:8px;background:rgba(255,255,255,.98);border:1px solid var(--line);border-radius:14px;box-shadow:0 16px 38px rgba(25,30,35,.18)}.poi-menu[hidden]{display:none}.poi-menu h2{font-size:11px;margin:2px 4px 7px}.poi-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;border:0;background:transparent;padding:9px 8px;border-radius:10px;cursor:pointer;color:#27313d}.poi-toggle:hover{background:#f5f1e9}.poi-toggle-left{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800}.poi-dot{width:9px;height:9px;border-radius:50%;background:var(--poiColor)}.poi-toggle-state{font-size:10px;color:#8a929c;font-weight:800}.poi-toggle[aria-pressed="true"] .poi-toggle-state{color:#202933}
+.locate-control{position:absolute;z-index:680;right:18px;bottom:88px}.locate-btn{appearance:none;width:46px;height:46px;border:1px solid rgba(225,220,210,.95);border-radius:14px;background:rgba(255,255,255,.96);color:#33404d;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(25,30,35,.14);backdrop-filter:blur(10px);transition:.18s}.locate-btn:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(25,30,35,.18)}.locate-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.locate-btn.locating{color:#2c738b}.locate-btn.active{color:#fff;background:#2c738b;border-color:#2c738b}.locate-btn.active::after{content:"";position:absolute;right:4px;top:4px;width:8px;height:8px;border-radius:50%;background:#fff;border:2px solid #2c738b}.user-location-dot{width:20px;height:20px;border-radius:50%;background:#2186d4;border:4px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.35),0 0 0 2px rgba(33,134,212,.28)}
+.poi-marker{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--poiColor,#556170);color:#fff;border:2px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.2)}.poi-marker svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.poi-pop-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}.poi-pop-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--poiColor,#556170);color:#fff;flex:0 0 auto}.poi-pop-icon svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.poi-pop-title{font-size:13px;font-weight:900;line-height:1.25}.poi-pop-branch{font-size:10px;color:#7a8290;font-weight:800;margin-top:2px}.poi-pop-address{font-size:10px;color:#657080;line-height:1.45;margin-top:6px}.poi-pop-note{font-size:10px;color:#657080;line-height:1.45;margin-top:5px}.poi-pop-type{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;background:#f3efe6;color:#5f6b79;font-size:9px;font-weight:900}
+.toast{position:fixed;z-index:1700;left:50%;bottom:26px;transform:translate(-50%,18px);max-width:min(430px,calc(100vw - 32px));padding:11px 14px;border-radius:12px;background:rgba(32,41,51,.95);color:#fff;font-size:11px;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+.panel-close,.mobile-schedule-btn,.mobile-backdrop{display:none}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+@media(max-width:840px){
+  html,body{height:100%;height:100dvh}.app{display:block;height:100dvh}.map-wrap{position:absolute;inset:0;height:100%;width:100%}#map{height:100%;width:100%}
+  .panel{position:fixed;z-index:1100;left:0;right:0;bottom:0;top:auto;height:min(85dvh,760px);border:0;border-top:1px solid var(--line);border-radius:23px 23px 0 0;box-shadow:0 -18px 48px rgba(20,25,30,.22);overflow:hidden;background:rgba(246,244,239,.99);transition:transform .28s cubic-bezier(.22,.8,.3,1);will-change:transform}
+  .panel[data-sheet="collapsed"]{transform:translateY(calc(100% - 118px))}.panel[data-sheet="mid"]{transform:translateY(calc(100% - 52dvh))}.panel[data-sheet="full"]{transform:translateY(0)}
+  .sheet-grabber{display:flex;appearance:none;border:0;background:transparent;width:100%;height:26px;align-items:center;justify-content:center;cursor:grab;touch-action:none}.sheet-grabber:active{cursor:grabbing}.sheet-grabber::before{content:"";width:40px;height:4px;border-radius:2px;background:#c8c2b8}
+  .head{position:relative;padding:8px 52px 12px 18px;flex:0 0 auto;background:rgba(255,255,255,.88)}h1{font-size:20px;margin:0}.switch{margin-top:8px;gap:7px}.switch button{padding:7px 11px}
+  .panel-close{display:flex;position:absolute;right:13px;top:5px;width:34px;height:34px;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--ink);align-items:center;justify-content:center;font-size:20px;cursor:pointer;z-index:2}.panel-close::before{content:"⌄"}.panel[data-sheet="full"] .panel-close::before{content:"×"}
+  .dayfilter{position:sticky;top:0;z-index:3;padding:9px 14px 8px;box-shadow:0 5px 16px rgba(30,35,40,.07);backdrop-filter:blur(14px);flex:0 0 auto}.dayfilter button{padding:8px 11px}.timeline{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:10px 10px calc(30px + env(safe-area-inset-bottom));scroll-behavior:smooth}.day{margin-bottom:18px}.day-title{padding:4px 8px 7px}.event-main{grid-template-columns:48px 10px 1fr;padding:9px 3px 9px 7px;gap:8px}.copy b{font-size:13px}.copy small{font-size:10.5px}
+  .map-title{top:calc(12px + env(safe-area-inset-top));left:12px;padding:9px 11px;border-radius:12px}.map-title b{font-size:11px}.poi-control{top:calc(12px + env(safe-area-inset-top));right:12px}.poi-menu-btn{padding:9px 10px}.poi-menu{top:44px}
+  .locate-control{right:12px;bottom:calc(190px + env(safe-area-inset-bottom))}.locate-btn{width:44px;height:44px;border-radius:13px}
+  .mobile-backdrop{display:block;position:fixed;z-index:1080;inset:0;background:rgba(20,25,30,.28);opacity:0;pointer-events:none;transition:opacity .22s}.mobile-backdrop.show{opacity:1;pointer-events:auto}.mobile-schedule-btn{display:none}.leaflet-control-zoom{margin-bottom:calc(126px + env(safe-area-inset-bottom))!important}.toast{bottom:calc(132px + env(safe-area-inset-bottom));z-index:1800}.action-menu{width:196px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 </style>
 </head>
 <body>
 <div class="app">
-  <aside class="panel" id="schedulePanel">
+  <aside class="panel" id="schedulePanel" data-sheet="collapsed" aria-label="여행 일정">
+    <button class="sheet-grabber" id="sheetGrabber" type="button" aria-label="일정 패널 높이 변경" aria-controls="schedulePanel"></button>
     <header class="head">
-      <button class="panel-close" id="panelClose" type="button" aria-label="일정 닫기">×</button>
+      <button class="panel-close" id="panelClose" type="button" aria-label="일정 패널 축소"></button>
       <h1>상하이 여행 일정 지도</h1>
-      <div class="switch">
-        <button id="planA" class="active" type="button">Plan A</button>
-        <button id="planB" type="button">Plan B</button>
+      <div class="switch" aria-label="여행 플랜 선택">
+        <button id="planA" class="active" type="button" aria-pressed="true">Plan A</button>
+        <button id="planB" type="button" aria-pressed="false">Plan B</button>
       </div>
     </header>
-    <div class="dayfilter" id="dayfilter"></div>
-    <main class="timeline" id="timeline"></main>
+    <nav class="dayfilter" id="dayfilter" aria-label="날짜 필터"></nav>
+    <main class="timeline" id="timeline" aria-live="polite"></main>
   </aside>
-  <section class="map-wrap">
+  <section class="map-wrap" aria-label="여행 일정 지도">
     <div class="map-title"><b id="mapLabel">Plan A · 전체</b></div>
-    <div class="overlay-toolbar" id="poiToolbar" aria-label="스파샵 지도 토글"></div>
-    <div id="map"></div>
+    <div class="poi-control" id="poiControl">
+      <button class="poi-menu-btn" id="poiMenuButton" type="button" aria-expanded="false" aria-controls="poiMenu">주변 장소 <span class="poi-count" id="poiCount">0</span></button>
+      <div class="poi-menu" id="poiMenu" role="group" aria-label="주변 장소 레이어" hidden><h2>지도에 표시</h2><div id="poiToolbar"></div></div>
+    </div>
+    <div class="locate-control">
+      <button class="locate-btn" id="locateBtn" type="button" aria-label="내 현재 위치 표시" aria-pressed="false" title="내 위치">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path><circle cx="12" cy="12" r="8"></circle></svg>
+      </button>
+    </div>
+    <div id="map" tabindex="0"></div>
   </section>
 </div>
 <div class="mobile-backdrop" id="mobileBackdrop"></div>
 <button class="mobile-schedule-btn" id="mobileScheduleBtn" type="button" aria-controls="schedulePanel" aria-expanded="false"><span>일정</span></button>
+<div class="action-menu" id="actionMenu" role="menu" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
@@ -211,8 +166,6 @@ B:[
  ]}
 ]};
 
-let plan='A', day='all', layers=[], activeEventKey='', toastTimer, routeLookup=new Map(), routeNoLookup=new Map(), activeRouteLayers=[];
-
 const POI_CATEGORIES={
   massage:{label:'마사지',color:'#5d7f5f'},
   spa:{label:'스파',color:'#7f5fb6'},
@@ -237,220 +190,158 @@ const POI_PLACES=[
   {id:'musiji_nj',cat:'head',name:'무쓰지 · 沐四季',branch:'난징동루점',lat:31.2351,lon:121.47815,address:'上海市黄浦区福州路318号 浦汇大厦503室',note:'난징동루·와이탄 접근성 좋음'},
   {id:'musiji_ja',cat:'head',name:'무쓰지 · 沐四季',branch:'정안사점',lat:31.2253,lon:121.4417,address:'上海市静安区愚园路309号 紫安大厦813室',note:'정안사권'}
 ];
-const poiToggleState={massage:true,spa:true,ear:true,head:true};
-const poiLayerGroups={};
-const poiMarkers=[];
+
+
+let plan='A', day='all', layers=[], activeEventKey='', toastTimer, routeLookup=new Map(), routeNoLookup=new Map(), activeRouteLayers=[];
+const poiToggleState={massage:false,spa:false,ear:false,head:false};
+const poiLayerGroups={}, poiMarkers=[];
+const storage={get(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch{return fallback}},set(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}};
+const completedEvents=new Set(storage.get('tripCompletedEvents',[]));
+const chosenOptions=storage.get('tripChosenOptions',{});
+const optionKey=(date,time)=>`${plan}|${date}|${time}`;
+
 function poiSymbol(cat){
   if(cat==='massage')return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8c1.2-1.6 2.2-1.6 3.4 0s2.2 1.6 3.4 0 2.2-1.6 3.4 0"/><path d="M6 13c1.2-1.6 2.2-1.6 3.4 0s2.2 1.6 3.4 0 2.2-1.6 3.4 0"/></svg>';
   if(cat==='spa')return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c.9 1.1 1.5 2.2 1.5 3.4 0 1.6-1.1 3-1.5 3.4-.4-.4-1.5-1.8-1.5-3.4C10.5 8.2 11.1 7.1 12 6Z"/><path d="M7 11c1.7.2 2.8.8 3.5 1.8.9 1.3 1 3 .9 3.6-.6-.1-2.3-.4-3.5-1.5-1-.9-1.4-2.2-.9-3.9Z"/><path d="M17 11c-1.7.2-2.8.8-3.5 1.8-.9 1.3-1 3-.9 3.6.6-.1 2.3-.4 3.5-1.5 1-.9 1.4-2.2.9-3.9Z"/></svg>';
   if(cat==='ear')return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 17.8c0 1.1-.8 2-1.9 2s-1.9-.9-1.9-2c0-1.4 1-2.1 1.7-2.6.8-.6 1.4-1.1 1.4-2.1 0-1.1-.8-1.9-2-1.9-1.3 0-2.3.9-2.6 2.3"/><path d="M11.1 4.5c4 0 6.8 2.9 6.8 6.7 0 1.7-.7 3.1-1.8 4.2-.9.9-1.6 1.9-1.6 3.2"/></svg>';
-  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5c2.4 0 4.3 1.9 4.3 4.3S14.4 15 12 15s-4.3-1.9-4.3-4.2S9.6 6.5 12 6.5Z"/><path d="M7.6 18.6c1.3-1.5 2.8-2.2 4.4-2.2s3.1.7 4.4 2.2"/><path d="M18.4 6.3l1.2-1.2"/><path d="M20 8.7h1.7"/></svg>';
+  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5c2.4 0 4.3 1.9 4.3 4.3S14.4 15 12 15s-4.3-1.9-4.3-4.2S9.6 6.5 12 6.5Z"/><path d="M7.6 18.6c1.3-1.5 2.8-2.2 4.4-2.2s3.1.7 4.4 2.2"/></svg>';
 }
-function poiTypeLabel(cat){ return POI_CATEGORIES[cat]?.label || ''; }
-function makePoiIcon(cat){
-  const color=POI_CATEGORIES[cat].color;
-  return L.divIcon({className:'',html:`<div class="poi-marker" style="--poiColor:${color}">${poiSymbol(cat)}</div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-14]});
-}
-function poiPopupHtml(poi){
-  const color=POI_CATEGORIES[poi.cat].color;
-  return `<div class="poi-pop-head" style="--poiColor:${color}"><div class="poi-pop-icon">${poiSymbol(poi.cat)}</div><div><div class="poi-pop-title">${poi.name}</div><div class="poi-pop-branch">${poi.branch}</div></div></div><div class="poi-pop-type">${poiTypeLabel(poi.cat)}</div><div class="poi-pop-address">${poi.address}</div>${poi.note?`<div class="poi-pop-note">${poi.note}</div>`:''}`;
-}
-function initPoiLayers(){
-  Object.keys(POI_CATEGORIES).forEach(cat=>{poiLayerGroups[cat]=L.layerGroup().addTo(map);});
-  POI_PLACES.forEach(poi=>{
-    const marker=L.marker([poi.lat,poi.lon],{icon:makePoiIcon(poi.cat)}).bindPopup(poiPopupHtml(poi));
-    marker._poiCategory=poi.cat;
-    marker.addTo(poiLayerGroups[poi.cat]);
-    poiMarkers.push(marker);
-  });
-}
-function syncPoiLayers(){
-  Object.entries(poiLayerGroups).forEach(([cat,group])=>{
-    if(poiToggleState[cat]){ if(!map.hasLayer(group)) group.addTo(map); }
-    else { if(map.hasLayer(group)) map.removeLayer(group); }
-  });
-  document.querySelectorAll('.overlay-tool[data-cat]').forEach(btn=>{
-    const cat=btn.dataset.cat;
-    btn.classList.toggle('active',!!poiToggleState[cat]);
-    btn.setAttribute('aria-pressed',String(!!poiToggleState[cat]));
-  });
-}
-function renderPoiToolbar(){
-  const toolbar=document.getElementById('poiToolbar');
-  toolbar.innerHTML='';
-  [['massage','마사지/발'],['spa','스파'],['ear','귀청소'],['head','헤드스파']].forEach(([cat,label])=>{
-    const btn=document.createElement('button');
-    btn.type='button';
-    btn.className='overlay-tool'+(poiToggleState[cat]?' active':'');
-    btn.dataset.cat=cat;
-    btn.style.setProperty('--toolColor',POI_CATEGORIES[cat].color);
-    btn.setAttribute('title',label);
-    btn.setAttribute('aria-label',label+' 마커 표시 전환');
-    btn.setAttribute('aria-pressed',String(!!poiToggleState[cat]));
-    btn.innerHTML=poiSymbol(cat);
-    btn.addEventListener('click',()=>{poiToggleState[cat]=!poiToggleState[cat]; syncPoiLayers();});
-    toolbar.appendChild(btn);
-  });
-}
+function poiTypeLabel(cat){return POI_CATEGORIES[cat]?.label||''}
+function makePoiIcon(cat){const color=POI_CATEGORIES[cat].color;return L.divIcon({className:'',html:`<div class="poi-marker" style="--poiColor:${color}">${poiSymbol(cat)}</div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-14]})}
+function poiPopupHtml(poi){const color=POI_CATEGORIES[poi.cat].color;return `<div class="poi-pop-head" style="--poiColor:${color}"><div class="poi-pop-icon">${poiSymbol(poi.cat)}</div><div><div class="poi-pop-title">${poi.name}</div><div class="poi-pop-branch">${poi.branch}</div></div></div><div class="poi-pop-type">${poiTypeLabel(poi.cat)}</div><div class="poi-pop-address">${poi.address}</div>${poi.note?`<div class="poi-pop-note">${poi.note}</div>`:''}`}
 
 const map=L.map('map',{zoomControl:false}).setView([31.2315,121.481],13);
 L.control.zoom({position:'bottomright'}).addTo(map);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
 
+const locateBtn=document.getElementById('locateBtn');
+let locationWatchId=null,userLocationMarker=null,userAccuracyCircle=null,lastUserLocation=null,hasCenteredOnUser=false;
+function userLocationIcon(){return L.divIcon({className:'',html:'<div class="user-location-dot" aria-hidden="true"></div>',iconSize:[20,20],iconAnchor:[10,10],popupAnchor:[0,-12]})}
+function setLocateButtonState(state){
+  locateBtn.classList.toggle('locating',state==='locating');
+  locateBtn.classList.toggle('active',state==='active');
+  locateBtn.setAttribute('aria-pressed',String(state==='active'));
+  locateBtn.setAttribute('aria-label',state==='active'?'현재 위치로 이동':'내 현재 위치 표시');
+  locateBtn.title=state==='active'?'현재 위치로 이동':'내 위치';
+}
+function updateUserLocation(position){
+  const {latitude,longitude,accuracy}=position.coords,latlng=[latitude,longitude];
+  lastUserLocation={lat:latitude,lng:longitude,accuracy};
+  if(!userLocationMarker){
+    userLocationMarker=L.marker(latlng,{icon:userLocationIcon(),zIndexOffset:1200,keyboard:false}).addTo(map);
+    userAccuracyCircle=L.circle(latlng,{radius:Math.max(accuracy||0,5),color:'#2186d4',weight:1,opacity:.45,fillColor:'#2186d4',fillOpacity:.10,interactive:false}).addTo(map);
+  }else{
+    userLocationMarker.setLatLng(latlng);
+    userAccuracyCircle.setLatLng(latlng).setRadius(Math.max(accuracy||0,5));
+  }
+  const accuracyText=Number.isFinite(accuracy)?`정확도 약 ${Math.round(accuracy)}m`:'GPS 위치';
+  userLocationMarker.bindPopup(`<div class="pop-place">현재 위치</div><div class="pop-address">${accuracyText}</div>`);
+  setLocateButtonState('active');
+  if(!hasCenteredOnUser){map.setView(latlng,16,{animate:true});hasCenteredOnUser=true;showToast('현재 위치를 표시했습니다')}
+}
+function handleLocationError(error){
+  setLocateButtonState('idle');
+  const message=error.code===1?'위치 권한이 거부되었습니다. 브라우저 사이트 설정에서 위치 권한을 허용해주세요.':error.code===2?'현재 위치를 확인할 수 없습니다. GPS 또는 네트워크 상태를 확인해주세요.':error.code===3?'위치 확인 시간이 초과되었습니다. 다시 시도해주세요.':'현재 위치를 불러오지 못했습니다.';
+  showToast(message);
+  if(locationWatchId!==null){navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null}
+}
+function startLocationTracking(){
+  if(!window.isSecureContext){showToast('GPS 기능은 HTTPS 환경에서 사용할 수 있습니다.');return}
+  if(!('geolocation' in navigator)){showToast('이 브라우저는 위치 기능을 지원하지 않습니다.');return}
+  if(locationWatchId!==null)return;
+  setLocateButtonState('locating');
+  showToast('현재 위치를 확인하는 중입니다');
+  locationWatchId=navigator.geolocation.watchPosition(updateUserLocation,handleLocationError,{enableHighAccuracy:true,timeout:15000,maximumAge:5000});
+}
+locateBtn.addEventListener('click',()=>{
+  if(lastUserLocation){map.setView([lastUserLocation.lat,lastUserLocation.lng],16,{animate:true});userLocationMarker?.openPopup();return}
+  startLocationTracking();
+});
+window.addEventListener('pagehide',()=>{if(locationWatchId!==null)navigator.geolocation.clearWatch(locationWatchId)});
+
+
+function initPoiLayers(){Object.keys(POI_CATEGORIES).forEach(cat=>{poiLayerGroups[cat]=L.layerGroup()});POI_PLACES.forEach(poi=>{const marker=L.marker([poi.lat,poi.lon],{icon:makePoiIcon(poi.cat)}).bindPopup(poiPopupHtml(poi));marker._poiCategory=poi.cat;marker.addTo(poiLayerGroups[poi.cat]);poiMarkers.push(marker)})}
+function syncPoiLayers(){
+  Object.entries(poiLayerGroups).forEach(([cat,group])=>{if(poiToggleState[cat]){if(!map.hasLayer(group))group.addTo(map)}else if(map.hasLayer(group))map.removeLayer(group)});
+  document.querySelectorAll('.poi-toggle[data-cat]').forEach(btn=>{const cat=btn.dataset.cat,active=!!poiToggleState[cat];btn.setAttribute('aria-pressed',String(active));btn.querySelector('.poi-toggle-state').textContent=active?'표시 중':'숨김'});
+  const count=Object.values(poiToggleState).filter(Boolean).length, badge=document.getElementById('poiCount');badge.textContent=count;badge.classList.toggle('show',count>0)
+}
+function renderPoiToolbar(){
+  const toolbar=document.getElementById('poiToolbar');toolbar.innerHTML='';
+  [['massage','마사지/발'],['spa','스파'],['ear','귀청소'],['head','헤드스파']].forEach(([cat,label])=>{
+    const btn=document.createElement('button');btn.type='button';btn.className='poi-toggle';btn.dataset.cat=cat;btn.style.setProperty('--poiColor',POI_CATEGORIES[cat].color);btn.setAttribute('aria-pressed','false');btn.innerHTML=`<span class="poi-toggle-left"><span class="poi-dot"></span>${label}</span><span class="poi-toggle-state">숨김</span>`;btn.addEventListener('click',()=>{poiToggleState[cat]=!poiToggleState[cat];syncPoiLayers()});toolbar.appendChild(btn)
+  })
+}
+
 function clearRouteHighlight(){activeRouteLayers.forEach(x=>map.removeLayer(x));activeRouteLayers=[]}
 function clearLayers(){clearRouteHighlight();layers.forEach(x=>map.removeLayer(x));layers=[]}
 function eventKey(date,time,title){return `${date}|${time}|${title}`}
 function visibleDays(){return plans[plan].map((d,i)=>({...d,index:i})).filter(d=>day==='all'||day===String(d.index))}
-function markerBackground(colors){
- const c=[...new Set(colors)];
- if(c.length<=1)return c[0]||'#777';
- if(c.length===2)return `linear-gradient(135deg,${c[0]} 0 49%,${c[1]} 51% 100%)`;
- return `conic-gradient(${c[0]} 0 33%,${c[1]} 33% 66%,${c[2]} 66% 100%)`;
-}
-function icon(firstNo,colors,count){
- const badge=count>1?`<span class="multi-badge">${count}</span>`:'';
- return L.divIcon({className:'',html:`<div class="num-marker" style="background:${markerBackground(colors)}">${firstNo}${badge}</div>`,iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-15]});
-}
-function popupHtml(group){
- const visits=group.visits.map(v=>`<div class="pop-visit" data-route-no="${v.routeNo}" style="--visitColor:${v.day.color}"><div class="pop-time">#${v.routeNo} · ${v.day.date} · ${v.ev.time}</div><div class="pop-title">${v.ev.title}</div>${v.ev.note?`<div class="pop-note">${v.ev.note}</div>`:''}</div>`).join('');
- return `<div class="pop-place">${group.place.name}</div><div class="pop-address">${group.place.note||''}</div>${visits}`;
-}
-function setActiveEvent(key){
- activeEventKey=key;
- document.querySelectorAll('.event').forEach(el=>el.classList.toggle('active-event',el.dataset.key===key));
-}
-function nextTravelVisit(visit){
- if(!visit)return null;
- let next=visit.next;
- while(next && next.p.lat===visit.p.lat && next.p.lon===visit.p.lon)next=next.next;
- return next;
-}
-function highlightNextRoute(key){
- clearRouteHighlight();
- const visit=routeLookup.get(key); const next=nextTravelVisit(visit);
- if(!visit||!next)return;
- const coords=[[visit.p.lat,visit.p.lon],[next.p.lat,next.p.lon]];
- const halo=L.polyline(coords,{color:'#fff',weight:11,opacity:.92,lineCap:'round',lineJoin:'round',interactive:false}).addTo(map);
- const line=L.polyline(coords,{color:'#ff8a1f',weight:7,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(map);
- activeRouteLayers.push(halo,line); halo.bringToFront(); line.bringToFront();
-}
-function activateRouteNo(routeNo,scroll=true){
- const visit=routeNoLookup.get(routeNo); if(!visit)return;
- setActiveEvent(visit.key); highlightNextRoute(visit.key);
- if(scroll){
-   const el=[...document.querySelectorAll('.event')].find(x=>x.dataset.key===visit.key);
-   if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
- }
-}
-function showToast(message){
- const el=document.getElementById('toast');
- el.textContent=message; el.classList.add('show');
- clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2400);
-}
-function scrollToEvent(date,time,title){
- const key=eventKey(date,time,title); setActiveEvent(key); highlightNextRoute(key);
- const el=[...document.querySelectorAll('.event')].find(x=>x.dataset.key===key);
- if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
-}
-function findPlaceMarker(placeKey){return layers.find(l=>l instanceof L.Marker && l._placeKey===placeKey)}
+function markerBackground(colors){const c=[...new Set(colors)];if(c.length<=1)return c[0]||'#777';if(c.length===2)return `linear-gradient(135deg,${c[0]} 0 49%,${c[1]} 51% 100%)`;return `conic-gradient(${c[0]} 0 33%,${c[1]} 33% 66%,${c[2]} 66% 100%)`}
+function buildStableRouteNumbers(){const result=new Map();let seq=1;plans[plan].forEach(d=>d.events.forEach(ev=>{if(!ev.place||!places[ev.place])return;result.set(eventKey(d.date,ev.time,ev.title),seq++)}));return result}
+function icon(firstNo,colors,count){const badge=count>1?`<span class="multi-badge">${count}</span>`:'';return L.divIcon({className:'',html:`<div class="num-marker" style="background:${markerBackground(colors)}">${firstNo}${badge}</div>`,iconSize:[36,36],iconAnchor:[18,18],popupAnchor:[0,-17]})}
+function popupHtml(group){const visits=group.visits.map(v=>`<div class="pop-visit" data-route-no="${v.routeNo}" style="--visitColor:${v.day.color}"><div class="pop-time">#${v.routeNo} · ${v.day.date} · ${v.ev.time}</div><div class="pop-title">${v.ev.title}</div>${v.ev.note?`<div class="pop-note">${v.ev.note}</div>`:''}</div>`).join('');return `<div class="pop-place">${group.place.name}</div><div class="pop-address">${group.place.note||''}</div>${visits}`}
+function setActiveEvent(key){activeEventKey=key;document.querySelectorAll('.event').forEach(el=>el.classList.toggle('active-event',el.dataset.key===key))}
+function nextTravelVisit(visit){if(!visit)return null;let next=visit.next;while(next&&next.p.lat===visit.p.lat&&next.p.lon===visit.p.lon)next=next.next;return next}
+function highlightNextRoute(key){clearRouteHighlight();const visit=routeLookup.get(key),next=nextTravelVisit(visit);if(!visit||!next)return;const coords=[[visit.p.lat,visit.p.lon],[next.p.lat,next.p.lon]];const halo=L.polyline(coords,{color:'#fff',weight:11,opacity:.92,lineCap:'round',lineJoin:'round',interactive:false}).addTo(map);const line=L.polyline(coords,{color:'#ff8a1f',weight:7,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(map);activeRouteLayers.push(halo,line);halo.bringToFront();line.bringToFront()}
+function activateRouteNo(routeNo,scroll=true){const visit=routeNoLookup.get(routeNo);if(!visit)return;setActiveEvent(visit.key);highlightNextRoute(visit.key);if(scroll){const el=[...document.querySelectorAll('.event')].find(x=>x.dataset.key===visit.key);el?.scrollIntoView({behavior:'smooth',block:'center'})}}
+function showToast(message){const el=document.getElementById('toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2200)}
+function scrollToEvent(date,time,title){const key=eventKey(date,time,title);setActiveEvent(key);highlightNextRoute(key);const el=[...document.querySelectorAll('.event')].find(x=>x.dataset.key===key);el?.scrollIntoView({behavior:'smooth',block:'center'})}
+function findPlaceMarker(placeKey){return layers.find(l=>l instanceof L.Marker&&l._placeKey===placeKey)}
+
 function draw(){
- clearLayers(); routeLookup=new Map(); routeNoLookup=new Map();
- let bounds=[]; let seq=1; const groups=new Map(); const lineLayers=[];
- visibleDays().forEach(d=>{
-   const dayVisits=[];
-   d.events.forEach(ev=>{
-     if(!ev.place)return; const p=places[ev.place]; if(!p)return;
-     const routeNo=seq++; const key=eventKey(d.date,ev.time,ev.title); bounds.push([p.lat,p.lon]);
-     const visit={day:d,ev,p,routeNo,key,next:null}; dayVisits.push(visit);
-     if(!groups.has(ev.place))groups.set(ev.place,{placeKey:ev.place,place:p,visits:[]});
-     groups.get(ev.place).visits.push(visit);
-   });
-   dayVisits.forEach((visit,i)=>{
-     visit.next=dayVisits[i+1]||null; routeLookup.set(visit.key,visit); routeNoLookup.set(visit.routeNo,visit);
-   });
-   const pts=dayVisits.map(v=>[v.p.lat,v.p.lon]);
-   if(pts.length>1)lineLayers.push(L.polyline(pts,{color:d.color,weight:3,opacity:.50,dashArray:'7 7'}));
- });
- lineLayers.forEach(line=>{line.addTo(map);layers.push(line)});
- groups.forEach(group=>{
-   const first=group.visits[0]; const colors=group.visits.map(v=>v.day.color);
-   const marker=L.marker([group.place.lat,group.place.lon],{icon:icon(first.routeNo,colors,group.visits.length)}).addTo(map);
-   marker._placeKey=group.placeKey;
-   marker.bindPopup(popupHtml(group));
-   marker.on('click',()=>scrollToEvent(first.day.date,first.ev.time,first.ev.title));
-   marker.on('popupopen',()=>{
-     const node=marker.getPopup().getElement();
-     node?.querySelectorAll('.pop-visit[data-route-no]').forEach(el=>{
-       el.addEventListener('click',()=>activateRouteNo(Number(el.dataset.routeNo),true));
-     });
-   });
-   layers.push(marker);
- });
- if(bounds.length){map.fitBounds(bounds,{padding:[42,42],maxZoom:14})}
- if(activeEventKey)highlightNextRoute(activeEventKey);
- document.getElementById('mapLabel').textContent=`Plan ${plan} · ${day==='all'?'전체':plans[plan][Number(day)].date}`;
+  clearLayers();routeLookup=new Map();routeNoLookup=new Map();let bounds=[];const stableRouteNumbers=buildStableRouteNumbers(),groups=new Map(),lineLayers=[];
+  visibleDays().forEach(d=>{const dayVisits=[];d.events.forEach(ev=>{if(!ev.place)return;const p=places[ev.place];if(!p)return;const key=eventKey(d.date,ev.time,ev.title),routeNo=stableRouteNumbers.get(key);bounds.push([p.lat,p.lon]);const visit={day:d,ev,p,routeNo,key,next:null};dayVisits.push(visit);if(!groups.has(ev.place))groups.set(ev.place,{placeKey:ev.place,place:p,visits:[]});groups.get(ev.place).visits.push(visit)});dayVisits.forEach((visit,i)=>{visit.next=dayVisits[i+1]||null;routeLookup.set(visit.key,visit);routeNoLookup.set(visit.routeNo,visit)});const pts=dayVisits.map(v=>[v.p.lat,v.p.lon]);if(pts.length>1)lineLayers.push(L.polyline(pts,{color:d.color,weight:3,opacity:.48,dashArray:'7 7'}))});
+  lineLayers.forEach(line=>{line.addTo(map);layers.push(line)});
+  groups.forEach(group=>{const first=group.visits[0],colors=group.visits.map(v=>v.day.color);const marker=L.marker([group.place.lat,group.place.lon],{icon:icon(first.routeNo,colors,group.visits.length)}).addTo(map);marker._placeKey=group.placeKey;marker.bindPopup(popupHtml(group));marker.on('click',()=>scrollToEvent(first.day.date,first.ev.time,first.ev.title));marker.on('popupopen',()=>{const node=marker.getPopup().getElement();node?.querySelectorAll('.pop-visit[data-route-no]').forEach(el=>el.addEventListener('click',()=>activateRouteNo(Number(el.dataset.routeNo),true)))});layers.push(marker)});
+  if(bounds.length)map.fitBounds(bounds,{padding:[42,42],maxZoom:14});if(activeEventKey)highlightNextRoute(activeEventKey);document.getElementById('mapLabel').textContent=`Plan ${plan} · ${day==='all'?'전체':plans[plan][Number(day)].date}`
+}
+
+function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function focusEvent(d,ev,p){const key=eventKey(d.date,ev.time,ev.title);setActiveEvent(key);highlightNextRoute(key);if(isMobile())setSheetState('collapsed');if(p){map.flyTo([p.lat,p.lon],15,{duration:.65});setTimeout(()=>findPlaceMarker(ev.place)?.openPopup(),650)}else{clearRouteHighlight();showToast(ev.note||'위치 정보 없음')}}
+function setOptionChoice(d,ev){const key=optionKey(d.date,ev.time);chosenOptions[key]=eventKey(d.date,ev.time,ev.title);storage.set('tripChosenOptions',chosenOptions);renderTimeline()}
+function toggleCompleted(key){if(completedEvents.has(key))completedEvents.delete(key);else completedEvents.add(key);storage.set('tripCompletedEvents',[...completedEvents]);renderTimeline();closeActionMenu()}
+
+function createEventRow(d,ev,{inOptionGroup=false}={}){
+  const p=ev.place?places[ev.place]:null,key=eventKey(d.date,ev.time,ev.title),row=document.createElement('div');row.className='event'+(p?'':' no-map')+(activeEventKey===key?' active-event':'')+(completedEvents.has(key)?' completed':'');row.dataset.key=key;row.style.setProperty('--eventColor',d.color);
+  if(inOptionGroup&&chosenOptions[optionKey(d.date,ev.time)]===key)row.classList.add('option-selected');
+  const detail=[p?.name,ev.note].filter(Boolean).filter((v,idx,a)=>a.indexOf(v)===idx).join(' · '),selected=inOptionGroup&&chosenOptions[optionKey(d.date,ev.time)]===key;
+  const main=document.createElement('button');main.type='button';main.className='event-main';main.setAttribute('aria-label',[ev.time,ev.title,p?.name,ev.optional?'선택 일정':'',selected?'선택됨':''].filter(Boolean).join(', '));main.innerHTML=`<span class="time">${escapeHtml(ev.time)}</span><span class="dot" style="background:${p?d.color:'transparent'}"></span><span class="copy"><b>${escapeHtml(ev.title)}${ev.optional?'<span class="tag">선택</span>':''}${selected?'<span class="option-check">선택됨</span>':''}</b><small>${escapeHtml(detail)}</small></span>`;
+  main.addEventListener('click',()=>{if(inOptionGroup)setOptionChoice(d,ev);focusEvent(d,ev,p)});row.appendChild(main);
+  const more=document.createElement('button');more.type='button';more.className='event-actions-btn';more.textContent='⋯';more.setAttribute('aria-label',`${ev.title} 추가 작업`);more.setAttribute('aria-haspopup','menu');more.setAttribute('aria-expanded','false');more.addEventListener('click',e=>{e.stopPropagation();openActionMenu(more,d,ev,p,key)});row.appendChild(more);return row
 }
 function renderTimeline(){
- const root=document.getElementById('timeline'); root.innerHTML='';
- plans[plan].forEach((d,i)=>{
-   if(day!=='all'&&day!==String(i))return;
-   const sec=document.createElement('section'); sec.className='day';
-   sec.innerHTML=`<div class="day-title"><strong>${d.date}</strong><span>${d.events.length}개 일정</span></div>`;
-   d.events.forEach(ev=>{
-     const p=ev.place?places[ev.place]:null; const key=eventKey(d.date,ev.time,ev.title); const row=document.createElement('div');
-     row.className='event'+(p?'':' no-map')+(activeEventKey===key?' active-event':''); row.dataset.key=key; row.style.setProperty('--eventColor',d.color);
-     const detail=[p?.name,ev.note].filter(Boolean).filter((v,idx,a)=>a.indexOf(v)===idx).join(' · ');
-     row.innerHTML=`<div class="time">${ev.time}</div><div class="dot" style="background:${p?d.color:'transparent'}"></div><div class="copy"><b>${ev.title}${ev.optional?'<span class="tag">선택</span>':''}</b><small>${detail}</small></div>`;
-     if(p){
-       row.addEventListener('click',()=>{
-         setActiveEvent(key); highlightNextRoute(key); if(isMobile())setScheduleOpen(false); map.flyTo([p.lat,p.lon],15,{duration:.7});
-         setTimeout(()=>findPlaceMarker(ev.place)?.openPopup(),700);
-       });
-     }else{
-       row.title='위치 정보 없음';
-       row.addEventListener('click',()=>{setActiveEvent(key);clearRouteHighlight();showToast(ev.note||'위치 정보 없음')});
-     }
-     sec.appendChild(row);
-   }); root.appendChild(sec);
- });
+  const root=document.getElementById('timeline');root.innerHTML='';plans[plan].forEach((d,i)=>{if(day!=='all'&&day!==String(i))return;const sec=document.createElement('section');sec.className='day';sec.setAttribute('aria-labelledby',`day-${plan}-${i}`);sec.innerHTML=`<div class="day-title"><strong id="day-${plan}-${i}">${d.date}</strong><span>${d.events.length}개 일정</span></div>`;
+    for(let idx=0;idx<d.events.length;idx++){const ev=d.events[idx];if(ev.optional){const grouped=[ev];let j=idx+1;while(j<d.events.length&&d.events[j].optional&&d.events[j].time===ev.time){grouped.push(d.events[j]);j++}if(grouped.length>1){const wrap=document.createElement('div');wrap.className='option-group';const chosen=chosenOptions[optionKey(d.date,ev.time)];wrap.innerHTML=`<div class="option-head"><strong>${escapeHtml(ev.time)} 선택 일정</strong><span>${chosen?'1개 선택됨':'하나를 선택하세요'}</span></div>`;grouped.forEach(item=>wrap.appendChild(createEventRow(d,item,{inOptionGroup:true})));sec.appendChild(wrap);idx=j-1;continue}}sec.appendChild(createEventRow(d,ev))}root.appendChild(sec)
+  })
 }
-function renderFilters(){
- const box=document.getElementById('dayfilter');box.innerHTML='';
- const opts=[{v:'all',t:'전체',color:'#202933'},...plans[plan].map((d,i)=>({v:String(i),t:d.date,color:d.color}))];
- opts.forEach(o=>{
-   const b=document.createElement('button'); b.type='button'; b.className=day===o.v?'active':''; b.style.setProperty('--dayColor',o.color);
-   b.innerHTML=o.v==='all'?o.t:`<span class="filter-dot"></span>${o.t}`;
-   b.onclick=()=>{day=o.v;activeEventKey='';renderFilters();renderTimeline();draw()}; box.appendChild(b);
- });
-}
-function setPlan(p){
- plan=p;day='all';activeEventKey='';document.getElementById('planA').classList.toggle('active',p==='A');document.getElementById('planB').classList.toggle('active',p==='B');document.documentElement.style.setProperty('--accent',p==='A'?'#d7482f':'#2b6f9f');renderFilters();renderTimeline();draw();
-}
-const schedulePanel=document.getElementById('schedulePanel');
-const mobileScheduleBtn=document.getElementById('mobileScheduleBtn');
-const panelClose=document.getElementById('panelClose');
-const mobileBackdrop=document.getElementById('mobileBackdrop');
+function renderFilters(){const box=document.getElementById('dayfilter');box.innerHTML='';const opts=[{v:'all',t:'전체',color:'#202933'},...plans[plan].map((d,i)=>({v:String(i),t:d.date,color:d.color}))];opts.forEach(o=>{const b=document.createElement('button');b.type='button';b.className=day===o.v?'active':'';b.style.setProperty('--dayColor',o.color);b.setAttribute('aria-pressed',String(day===o.v));b.innerHTML=o.v==='all'?o.t:`<span class="filter-dot" aria-hidden="true"></span>${o.t}`;b.onclick=()=>{day=o.v;activeEventKey='';renderFilters();renderTimeline();draw()};box.appendChild(b)})}
+function setPlan(p){plan=p;day='all';activeEventKey='';document.getElementById('planA').classList.toggle('active',p==='A');document.getElementById('planB').classList.toggle('active',p==='B');document.getElementById('planA').setAttribute('aria-pressed',String(p==='A'));document.getElementById('planB').setAttribute('aria-pressed',String(p==='B'));document.documentElement.style.setProperty('--accent',p==='A'?'#d7482f':'#2b6f9f');renderFilters();renderTimeline();draw()}
+
+const actionMenu=document.getElementById('actionMenu');let activeActionButton=null;
+function closeActionMenu(){actionMenu.hidden=true;if(activeActionButton)activeActionButton.setAttribute('aria-expanded','false');activeActionButton=null}
+function openActionMenu(button,d,ev,p,key){closeActionMenu();activeActionButton=button;button.setAttribute('aria-expanded','true');const actions=[];if(p){actions.push(['지도에서 보기',()=>focusEvent(d,ev,p)]);actions.push(['주소 복사',async()=>{const text=p.note||p.name;let copied=false;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);copied=true}else{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();copied=document.execCommand('copy');ta.remove()}}catch{}showToast(copied?'주소를 복사했습니다':text);closeActionMenu()}]);actions.push(['고덕지도에서 검색',()=>{const q=encodeURIComponent(`${p.name} ${p.note||''}`);window.open(`https://uri.amap.com/search?keyword=${q}&src=tripmap&callnative=0`,'_blank','noopener');closeActionMenu()}])}actions.push([completedEvents.has(key)?'완료 표시 해제':'완료로 표시',()=>toggleCompleted(key)]);actionMenu.innerHTML='';actions.forEach(([label,handler])=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','menuitem');b.textContent=label;b.addEventListener('click',handler);actionMenu.appendChild(b)});const rect=button.getBoundingClientRect(),w=188,left=Math.min(window.innerWidth-w-10,Math.max(10,rect.right-w)),top=Math.min(window.innerHeight-220,rect.bottom+6);actionMenu.style.left=`${left}px`;actionMenu.style.top=`${Math.max(10,top)}px`;actionMenu.hidden=false;actionMenu.querySelector('button')?.focus()}
+
+document.addEventListener('click',e=>{if(!actionMenu.hidden&&!actionMenu.contains(e.target)&&!e.target.closest('.event-actions-btn'))closeActionMenu()});
+
+const schedulePanel=document.getElementById('schedulePanel'),sheetGrabber=document.getElementById('sheetGrabber'),panelClose=document.getElementById('panelClose'),mobileBackdrop=document.getElementById('mobileBackdrop'),mobileScheduleBtn=document.getElementById('mobileScheduleBtn');
 function isMobile(){return window.matchMedia('(max-width:840px)').matches}
-function setScheduleOpen(open){
- if(!isMobile())open=false;
- schedulePanel.classList.toggle('open',open);
- mobileBackdrop.classList.toggle('show',open);
- document.body.classList.toggle('schedule-open',open);
- mobileScheduleBtn.setAttribute('aria-expanded',String(open));
-}
-mobileScheduleBtn.addEventListener('click',()=>setScheduleOpen(true));
-panelClose.addEventListener('click',()=>setScheduleOpen(false));
-mobileBackdrop.addEventListener('click',()=>setScheduleOpen(false));
-document.addEventListener('keydown',e=>{if(e.key==='Escape')setScheduleOpen(false)});
+function setSheetState(state){if(!isMobile())return;schedulePanel.dataset.sheet=state;const full=state==='full';mobileBackdrop.classList.toggle('show',full);document.body.classList.toggle('schedule-open',state!=='collapsed');panelClose.setAttribute('aria-label',full?'일정 패널 닫기':'일정 패널 축소');setTimeout(()=>map.invalidateSize(),120)}
+function cycleSheet(){const s=schedulePanel.dataset.sheet||'collapsed';setSheetState(s==='collapsed'?'mid':s==='mid'?'full':'collapsed')}
+sheetGrabber.addEventListener('click',cycleSheet);panelClose.addEventListener('click',()=>setSheetState(schedulePanel.dataset.sheet==='full'?'collapsed':'collapsed'));mobileBackdrop.addEventListener('click',()=>setSheetState('collapsed'));mobileScheduleBtn.addEventListener('click',()=>setSheetState('mid'));
+let dragStartY=0,dragStartTranslate=0,dragging=false;
+function currentTranslate(){const style=getComputedStyle(schedulePanel);const m=new DOMMatrixReadOnly(style.transform);return m.m42||0}
+sheetGrabber.addEventListener('pointerdown',e=>{if(!isMobile())return;dragging=true;dragStartY=e.clientY;dragStartTranslate=currentTranslate();sheetGrabber.setPointerCapture(e.pointerId);schedulePanel.style.transition='none'});
+sheetGrabber.addEventListener('pointermove',e=>{if(!dragging)return;const max=schedulePanel.offsetHeight-118,dy=e.clientY-dragStartY,next=Math.max(0,Math.min(max,dragStartTranslate+dy));schedulePanel.style.transform=`translateY(${next}px)`});
+function endDrag(e){if(!dragging)return;dragging=false;schedulePanel.releasePointerCapture?.(e.pointerId);const translate=currentTranslate(),h=schedulePanel.offsetHeight;schedulePanel.style.transition='';schedulePanel.style.transform='';const ratio=translate/h;setSheetState(ratio<.23?'full':ratio<.68?'mid':'collapsed')}
+sheetGrabber.addEventListener('pointerup',endDrag);sheetGrabber.addEventListener('pointercancel',endDrag);
+
+const poiMenuButton=document.getElementById('poiMenuButton'),poiMenu=document.getElementById('poiMenu');poiMenuButton.addEventListener('click',()=>{const open=poiMenu.hidden;poiMenu.hidden=!open;poiMenuButton.setAttribute('aria-expanded',String(open))});document.addEventListener('click',e=>{if(!document.getElementById('poiControl').contains(e.target)){poiMenu.hidden=true;poiMenuButton.setAttribute('aria-expanded','false')}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeActionMenu();poiMenu.hidden=true;poiMenuButton.setAttribute('aria-expanded','false');if(isMobile()&&schedulePanel.dataset.sheet==='full')setSheetState('mid')}});
 document.getElementById('planA').onclick=()=>setPlan('A');document.getElementById('planB').onclick=()=>setPlan('B');
-initPoiLayers();
-renderPoiToolbar();
-syncPoiLayers();
-renderFilters();renderTimeline();draw();
-window.addEventListener('resize',()=>{
- if(!isMobile())setScheduleOpen(false);
- setTimeout(()=>map.invalidateSize(),150);
-});
+
+initPoiLayers();renderPoiToolbar();syncPoiLayers();renderFilters();renderTimeline();draw();
+window.addEventListener('resize',()=>{if(!isMobile()){schedulePanel.style.transform='';schedulePanel.dataset.sheet='collapsed';mobileBackdrop.classList.remove('show')}setTimeout(()=>map.invalidateSize(),120)});
 </script>
 </body>
 </html>
