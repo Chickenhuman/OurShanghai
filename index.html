@@ -60,6 +60,23 @@
   .multi-badge{position:absolute;right:-7px;top:-7px;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:#202933;border:1.5px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;line-height:1}
   .map-title{position:absolute;z-index:600;top:18px;left:18px;background:rgba(255,255,255,.92);border:1px solid rgba(225,220,210,.95);padding:10px 12px;border-radius:13px;box-shadow:0 8px 24px rgba(25,30,35,.12);backdrop-filter:blur(10px);pointer-events:none}
   .map-title b{display:block;font-size:12px}
+
+  .overlay-toolbar{position:absolute;z-index:650;top:18px;right:18px;display:flex;gap:8px;padding:8px;border-radius:16px;background:rgba(255,255,255,.94);border:1px solid rgba(225,220,210,.95);box-shadow:0 8px 24px rgba(25,30,35,.12);backdrop-filter:blur(10px)}
+  .overlay-tool{appearance:none;width:42px;height:42px;border-radius:12px;border:1px solid #e7e1d6;background:#fff;color:#556170;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.18s;box-shadow:0 1px 0 rgba(255,255,255,.6) inset}
+  .overlay-tool:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(28,36,48,.08)}
+  .overlay-tool.active{color:#fff;border-color:transparent;background:var(--toolColor,#202933);box-shadow:0 8px 18px color-mix(in srgb, var(--toolColor,#202933) 28%, transparent)}
+  .overlay-tool svg{width:21px;height:21px;display:block;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .overlay-note{position:absolute;z-index:620;top:76px;right:18px;padding:7px 10px;border-radius:11px;background:rgba(255,255,255,.92);border:1px solid rgba(225,220,210,.95);font-size:10px;line-height:1.35;color:#657080;box-shadow:0 8px 20px rgba(25,30,35,.10);backdrop-filter:blur(8px);pointer-events:none}
+  .poi-marker{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--poiColor,#556170);color:#fff;border:2px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+  .poi-marker svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .poi-pop-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .poi-pop-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--poiColor,#556170);color:#fff;flex:0 0 auto}
+  .poi-pop-icon svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .poi-pop-title{font-size:13px;font-weight:900;line-height:1.25}
+  .poi-pop-branch{font-size:10px;color:#7a8290;font-weight:800;margin-top:2px}
+  .poi-pop-address{font-size:10px;color:#657080;line-height:1.45;margin-top:6px}
+  .poi-pop-note{font-size:10px;color:#657080;line-height:1.45;margin-top:5px}
+  .poi-pop-type{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;background:#f3efe6;color:#5f6b79;font-size:9px;font-weight:900;letter-spacing:.03em;text-transform:uppercase}
   .toast{position:fixed;z-index:1300;left:50%;bottom:26px;transform:translate(-50%,18px);max-width:min(430px,calc(100vw - 32px));padding:11px 14px;border-radius:12px;background:rgba(32,41,51,.94);color:#fff;font-size:11px;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:.2s}
   .toast.show{opacity:1;transform:translate(-50%,0)}
   .map-wrap{position:relative;min-width:0}
@@ -89,6 +106,10 @@
     .copy small{font-size:10.5px}
     .map-title{top:calc(12px + env(safe-area-inset-top));left:12px;padding:9px 11px;border-radius:12px}
     .map-title b{font-size:11px}
+
+    .overlay-toolbar{top:calc(12px + env(safe-area-inset-top));right:12px;padding:7px;gap:7px;border-radius:14px}
+    .overlay-tool{width:40px;height:40px;border-radius:11px}
+    .overlay-note{top:calc(62px + env(safe-area-inset-top));right:12px;font-size:9.5px;max-width:170px}
     .mobile-backdrop{display:block;position:fixed;z-index:1080;inset:0;background:rgba(20,25,30,.28);opacity:0;pointer-events:none;transition:opacity .22s}
     .mobile-backdrop.show{opacity:1;pointer-events:auto}
     .mobile-schedule-btn{display:flex;position:fixed;z-index:1050;left:16px;bottom:calc(18px + env(safe-area-inset-bottom));height:48px;min-width:82px;padding:0 18px;border:0;border-radius:24px;background:#202933;color:#fff;align-items:center;justify-content:center;font:inherit;font-size:13px;font-weight:900;box-shadow:0 10px 28px rgba(20,25,30,.28);cursor:pointer;transition:opacity .18s,transform .18s}
@@ -104,7 +125,6 @@
   <aside class="panel" id="schedulePanel">
     <header class="head">
       <button class="panel-close" id="panelClose" type="button" aria-label="일정 닫기">×</button>
-      <div class="eyebrow">Shanghai · 3 days</div>
       <h1>상하이 여행 일정 지도</h1>
       <div class="switch">
         <button id="planA" class="active" type="button">Plan A</button>
@@ -116,6 +136,7 @@
   </aside>
   <section class="map-wrap">
     <div class="map-title"><b id="mapLabel">Plan A · 전체</b></div>
+    <div class="overlay-toolbar" id="poiToolbar" aria-label="스파샵 지도 토글"></div>
     <div id="map"></div>
   </section>
 </div>
@@ -191,6 +212,87 @@ B:[
 ]};
 
 let plan='A', day='all', layers=[], activeEventKey='', toastTimer, routeLookup=new Map(), routeNoLookup=new Map(), activeRouteLayers=[];
+
+const POI_CATEGORIES={
+  massage:{label:'마사지',color:'#5d7f5f'},
+  spa:{label:'스파',color:'#7f5fb6'},
+  ear:{label:'귀청소',color:'#c7822c'},
+  head:{label:'헤드스파',color:'#2f7aa1'}
+};
+const POI_PLACES=[
+  {id:'yuzudao',cat:'massage',name:'위족도 · 煜足道',branch:'浙江中路점',lat:31.23635,lon:121.47645,address:'上海市黄浦区浙江中路166号',note:'난징동루·그랜드센트럴 인근 발마사지'},
+  {id:'zhengyuanyuan',cat:'massage',name:'정원원 · 郑远元专业修脚房',branch:'大沽路점',lat:31.22915,lon:121.46885,address:'上海市黄浦区大沽路169号',note:'가성비 체인점 · 인민광장권'},
+  {id:'kangdao_u479',cat:'massage',name:'캉다오톈디 · 康道天地',branch:'南京东路 U479점',lat:31.23635,lon:121.48035,address:'上海市黄浦区南京东路479号 U479商场10楼',note:'난징동루권 인기 마사지 체인'},
+  {id:'kangdao_jiujiang',cat:'massage',name:'캉다오마사지 · 康道按摩',branch:'九江路점',lat:31.23705,lon:121.47895,address:'上海市黄浦区九江路699号',note:'난징동루·그랜드센트럴 인근'},
+  {id:'zen_wuyuan',cat:'massage',name:'젠 마사지 · Zen Massage',branch:'五原路점',lat:31.20695,lon:121.43385,address:'上海市徐汇区五原路210号',note:'우캉맨션권 · 운영 여부 현장 확인 권장'},
+  {id:'zen_fuxing',cat:'massage',name:'젠 마사지 · Zen Massage',branch:'复兴西路점',lat:31.2111,lon:121.4325,address:'上海市徐汇区复兴西路76号',note:'우캉맨션권 · 운영 여부 현장 확인 권장'},
+  {id:'eryu',cat:'ear',name:'얼위 귀청소 · 耳煜采耳',branch:'浙江中路점',lat:31.23675,lon:121.4763,address:'上海市黄浦区浙江中路182号',note:'난징동루 일정 중 들르기 좋은 귀청소'},
+  {id:'green_k11',cat:'spa',name:'그린마사지 · Green Massage',branch:'K11점',lat:31.2232,lon:121.4742,address:'上海市黄浦区淮海中路300号 K11购物艺术中心3楼',note:'고급 스파 · 신천지 북측'},
+  {id:'green_xintiandi',cat:'spa',name:'그린마사지 · Green Massage',branch:'新天地점',lat:31.22195,lon:121.4733,address:'上海市黄浦区太仓路58号',note:'신천지 도보권'},
+  {id:'green_wuxianji',cat:'spa',name:'그린마사지 · Green Massage',branch:'无限极荟점',lat:31.22365,lon:121.4752,address:'上海市黄浦区湖滨路168号 无限极荟L3-W01-1',note:'신천지·호수광장권'},
+  {id:'green_hengji',cat:'spa',name:'그린마사지 · Green Massage',branch:'恒基旭辉天地점',lat:31.21715,lon:121.47485,address:'上海市黄浦区马当路458弄1号 恒基旭辉天地B2',note:'마당루 남측'},
+  {id:'green_sc',cat:'spa',name:'그린마사지 · Green Massage',branch:'上海商城점',lat:31.22495,lon:121.4489,address:'上海市静安区南京西路1376号 上海商城东峰公寓808室',note:'정안사·프라다 카페권'},
+  {id:'longmiao',cat:'head',name:'용묘 · 龙喵头疗SPA',branch:'新天地점',lat:31.22578,lon:121.4703,address:'上海市黄浦区淮海中路283号 香港广场南座1506室',note:'신천지·홍콩광장 헤드스파'},
+  {id:'jianyisheng',cat:'head',name:'젠이성 · 简宜生头皮管理中心',branch:'潍坊路점',lat:31.2248,lon:121.5234,address:'上海市浦东新区潍坊路162号 瑞创谷潍坊园403室',note:'프라이빗 헤드스파 · 푸동권'},
+  {id:'musiji_nj',cat:'head',name:'무쓰지 · 沐四季',branch:'난징동루점',lat:31.2351,lon:121.47815,address:'上海市黄浦区福州路318号 浦汇大厦503室',note:'난징동루·와이탄 접근성 좋음'},
+  {id:'musiji_ja',cat:'head',name:'무쓰지 · 沐四季',branch:'정안사점',lat:31.2253,lon:121.4417,address:'上海市静安区愚园路309号 紫安大厦813室',note:'정안사권'}
+];
+const poiToggleState={massage:true,spa:true,ear:true,head:true};
+const poiLayerGroups={};
+const poiMarkers=[];
+function poiSymbol(cat){
+  if(cat==='massage')return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8c1.2-1.6 2.2-1.6 3.4 0s2.2 1.6 3.4 0 2.2-1.6 3.4 0"/><path d="M6 13c1.2-1.6 2.2-1.6 3.4 0s2.2 1.6 3.4 0 2.2-1.6 3.4 0"/></svg>';
+  if(cat==='spa')return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c.9 1.1 1.5 2.2 1.5 3.4 0 1.6-1.1 3-1.5 3.4-.4-.4-1.5-1.8-1.5-3.4C10.5 8.2 11.1 7.1 12 6Z"/><path d="M7 11c1.7.2 2.8.8 3.5 1.8.9 1.3 1 3 .9 3.6-.6-.1-2.3-.4-3.5-1.5-1-.9-1.4-2.2-.9-3.9Z"/><path d="M17 11c-1.7.2-2.8.8-3.5 1.8-.9 1.3-1 3-.9 3.6.6-.1 2.3-.4 3.5-1.5 1-.9 1.4-2.2.9-3.9Z"/></svg>';
+  if(cat==='ear')return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 17.8c0 1.1-.8 2-1.9 2s-1.9-.9-1.9-2c0-1.4 1-2.1 1.7-2.6.8-.6 1.4-1.1 1.4-2.1 0-1.1-.8-1.9-2-1.9-1.3 0-2.3.9-2.6 2.3"/><path d="M11.1 4.5c4 0 6.8 2.9 6.8 6.7 0 1.7-.7 3.1-1.8 4.2-.9.9-1.6 1.9-1.6 3.2"/></svg>';
+  return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5c2.4 0 4.3 1.9 4.3 4.3S14.4 15 12 15s-4.3-1.9-4.3-4.2S9.6 6.5 12 6.5Z"/><path d="M7.6 18.6c1.3-1.5 2.8-2.2 4.4-2.2s3.1.7 4.4 2.2"/><path d="M18.4 6.3l1.2-1.2"/><path d="M20 8.7h1.7"/></svg>';
+}
+function poiTypeLabel(cat){ return POI_CATEGORIES[cat]?.label || ''; }
+function makePoiIcon(cat){
+  const color=POI_CATEGORIES[cat].color;
+  return L.divIcon({className:'',html:`<div class="poi-marker" style="--poiColor:${color}">${poiSymbol(cat)}</div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-14]});
+}
+function poiPopupHtml(poi){
+  const color=POI_CATEGORIES[poi.cat].color;
+  return `<div class="poi-pop-head" style="--poiColor:${color}"><div class="poi-pop-icon">${poiSymbol(poi.cat)}</div><div><div class="poi-pop-title">${poi.name}</div><div class="poi-pop-branch">${poi.branch}</div></div></div><div class="poi-pop-type">${poiTypeLabel(poi.cat)}</div><div class="poi-pop-address">${poi.address}</div>${poi.note?`<div class="poi-pop-note">${poi.note}</div>`:''}`;
+}
+function initPoiLayers(){
+  Object.keys(POI_CATEGORIES).forEach(cat=>{poiLayerGroups[cat]=L.layerGroup().addTo(map);});
+  POI_PLACES.forEach(poi=>{
+    const marker=L.marker([poi.lat,poi.lon],{icon:makePoiIcon(poi.cat)}).bindPopup(poiPopupHtml(poi));
+    marker._poiCategory=poi.cat;
+    marker.addTo(poiLayerGroups[poi.cat]);
+    poiMarkers.push(marker);
+  });
+}
+function syncPoiLayers(){
+  Object.entries(poiLayerGroups).forEach(([cat,group])=>{
+    if(poiToggleState[cat]){ if(!map.hasLayer(group)) group.addTo(map); }
+    else { if(map.hasLayer(group)) map.removeLayer(group); }
+  });
+  document.querySelectorAll('.overlay-tool[data-cat]').forEach(btn=>{
+    const cat=btn.dataset.cat;
+    btn.classList.toggle('active',!!poiToggleState[cat]);
+    btn.setAttribute('aria-pressed',String(!!poiToggleState[cat]));
+  });
+}
+function renderPoiToolbar(){
+  const toolbar=document.getElementById('poiToolbar');
+  toolbar.innerHTML='';
+  [['massage','마사지/발'],['spa','스파'],['ear','귀청소'],['head','헤드스파']].forEach(([cat,label])=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='overlay-tool'+(poiToggleState[cat]?' active':'');
+    btn.dataset.cat=cat;
+    btn.style.setProperty('--toolColor',POI_CATEGORIES[cat].color);
+    btn.setAttribute('title',label);
+    btn.setAttribute('aria-label',label+' 마커 표시 전환');
+    btn.setAttribute('aria-pressed',String(!!poiToggleState[cat]));
+    btn.innerHTML=poiSymbol(cat);
+    btn.addEventListener('click',()=>{poiToggleState[cat]=!poiToggleState[cat]; syncPoiLayers();});
+    toolbar.appendChild(btn);
+  });
+}
+
 const map=L.map('map',{zoomControl:false}).setView([31.2315,121.481],13);
 L.control.zoom({position:'bottomright'}).addTo(map);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
@@ -341,6 +443,9 @@ panelClose.addEventListener('click',()=>setScheduleOpen(false));
 mobileBackdrop.addEventListener('click',()=>setScheduleOpen(false));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')setScheduleOpen(false)});
 document.getElementById('planA').onclick=()=>setPlan('A');document.getElementById('planB').onclick=()=>setPlan('B');
+initPoiLayers();
+renderPoiToolbar();
+syncPoiLayers();
 renderFilters();renderTimeline();draw();
 window.addEventListener('resize',()=>{
  if(!isMobile())setScheduleOpen(false);
