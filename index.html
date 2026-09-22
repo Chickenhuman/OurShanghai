@@ -50,8 +50,9 @@
   .leaflet-popup-content{margin:13px 15px;min-width:220px;max-width:280px}
   .pop-place{font-size:14px;font-weight:900;margin:0 0 3px}
   .pop-address{font-size:10px;color:#7a8290;line-height:1.45;margin-bottom:8px}
-  .pop-visit{padding:7px 0 7px 9px;border-top:1px solid #eee9e0;border-left:3px solid var(--visitColor,#999)}
+  .pop-visit{padding:7px 7px 7px 9px;border-top:1px solid #eee9e0;border-left:3px solid var(--visitColor,#999);border-radius:0 8px 8px 0;cursor:pointer;transition:background .16s,transform .16s}
   .pop-visit:first-of-type{border-top:0}
+  .pop-visit:hover{background:#f7f3eb;transform:translateX(2px)}
   .pop-time{font-size:10px;color:#7a8290;font-weight:800;letter-spacing:.02em}
   .pop-title{font-size:12px;font-weight:900;margin:2px 0}
   .pop-note{font-size:10px;color:#657080;line-height:1.4}
@@ -134,7 +135,7 @@ const places = {
   xintiandi:{name:'신천지',lat:31.22183,lon:121.47036,note:'新天地'},
   sijiminfu:{name:'사계민복 · 홍콩광장점',lat:31.225792,lon:121.470245,note:'신천지 인근'},
   bund:{name:'와이탄',lat:31.24033,lon:121.48604,note:'外滩'},
-  zhuang:{name:'장씨네 게살국수 · 외탄점',lat:31.237054,lon:121.484639,note:'庄氏隆兴'},
+  zhuang:{name:'장씨네 게살국수 · 신세계 다이마루점',lat:31.24038,lon:121.48105,note:'庄氏隆兴 · 신세계 다이마루 백화점 · 南京东路228号'},
   prada:{name:'프라다 카페 · Mi Shang Prada Rong Zhai',lat:31.228589,lon:121.451276,note:'陕西北路186号'},
   photowith:{name:'포토위드 · PHOTO WITH',lat:31.230394,lon:121.452461,note:'何东·457 I楼 3층 · 上海市静安区陕西北路457号'},
   yuyuan:{name:'예원',lat:31.22892,lon:121.48775,note:'豫园'},
@@ -143,7 +144,7 @@ const places = {
   no1:{name:'상하이 제일백화점',lat:31.23703,lon:121.47027,note:'南京东路830号'},
   henjiu:{name:'헌지우이치엔 양꼬치',lat:31.23703,lon:121.47027,note:'很久以前羊肉串 · 제일백화점 B관 6층'},
   massage:{name:'도원향 발 마사지',lat:31.23703,lon:121.47027,note:'桃源乡 · 제일백화점 A관 7층'},
-  daimaru:{name:'신세계 다이마루',lat:31.24038,lon:121.48105,note:'南京东路228号 · 장씨네 후보 지점도 입점'},
+  daimaru:{name:'신세계 다이마루',lat:31.24038,lon:121.48105,note:'南京东路228号 · 장씨네 게살국수 입점'},
   nanjing:{name:'난징동루',lat:31.23735,lon:121.47780,note:'南京东路 보행자거리'}
 };
 const C={d1:'#2f7d5a',d2:'#c34e36',d3:'#2c738b'};
@@ -164,9 +165,9 @@ A:[
  {date:'10/11(일)',color:C.d3,events:[
   E('09:00','출장 메이크업','grandcentral','숙소 방문 메이크업 · 그랜드 센트럴 호텔 상하이'),E('11:00','점심 · 게살국수','zhuang'),
   E('12:00','포토위드 워크인 예약','photowith','何东·457 I楼 3층'),E('13:00','프라다 카페','prada'),
-  E('14:30','포토위드 촬영','photowith','何东·457 I楼 3층'),E('15:00','양꼬치 원격 웨이팅 후 예원 이동','henjiu','헌지우이치엔 양꼬치 원격 웨이팅 등록 후 예원으로 이동'),
+  E('14:30','포토위드 촬영','photowith','何东·457 I楼 3층'),E('15:00','양꼬치 원격 웨이팅 후 예원 이동','prada','프라다 카페에서 헌지우이치엔 양꼬치 원격 웨이팅 등록 후 예원으로 이동 · 3km 이내 원격 웨이팅'),
   E('16:30','예원 관광','yuyuan','간식: 대호춘 생전'),E('16:30','간식 · 대호춘 생전','dahuchun'),
-  E('18:30','와이탄 관광·스냅','bund'),E('18:30','동방명주 야경·스냅','pearlview','천이광장 외탄 전망대에서 조망'),
+  E('18:30','와이탄 관광·스냅','bund'),E('18:30','동방명주 야경·스냅','bund','와이탄 거리에서 동방명주·루자쭈이 야경 조망'),
   E('20:30','저녁 · 헌지우이치엔 양꼬치','henjiu','웨이팅에 따라 발 마사지와 조율'),E('22:00','발 마사지 · 도원향','massage')
  ]}
 ],
@@ -175,11 +176,11 @@ B:[
   E('18:50','공항 도착'),E('20:20','숙소 체크인','eton'),E('21:00','저녁 · 마늘롱샤','hongkui','2일차 저녁과 변경 가능')
  ]},
  {date:'10/10(토)',color:C.d2,events:[
-  E('08:30','출장 메이크업','grandcentral','숙소 방문 메이크업 · 그랜드 센트럴 호텔 상하이'),E('10:30','점심 · 홍미창편','superbrand','점도덕 정대광장점 · 차지티, 홀리랜드 구매'),
+  E('08:30','출장 메이크업','eton','숙소 방문 메이크업 · 디 이튼 호텔 상하이'),E('10:30','점심 · 홍미창편','superbrand','점도덕 정대광장점 · 차지티, 홀리랜드 구매'),
   E('12:00','짐 맡기기','grandcentral'),E('12:30','포토위드 워크인 예약','photowith','何东·457 I楼 3층'),
   E('13:00','프라다 카페','prada'),E('14:30','포토위드 촬영','photowith','何东·457 I楼 3층'),
   E('15:30','숙소 체크인·휴식','grandcentral'),E('17:00','예원 관광','yuyuan','간식: 대호춘 생전'),E('17:00','간식 · 대호춘 생전','dahuchun'),
-  E('19:00','와이탄 관광·스냅','bund'),E('19:00','동방명주 야경·스냅','pearlview','천이광장 외탄 전망대에서 조망'),E('20:30','저녁 · 배달',null,'레드립스, 소양생전, 양쯔깐루, 과일 · 1일차 저녁과 변경 가능')
+  E('19:00','와이탄 관광·스냅','bund'),E('19:00','동방명주 야경·스냅','bund','와이탄 거리에서 동방명주·루자쭈이 야경 조망'),E('20:30','저녁 · 배달',null,'레드립스, 소양생전, 양쯔깐루, 과일 · 1일차 저녁과 변경 가능')
  ]},
  {date:'10/11(일)',color:C.d3,events:[
   E('11:00','점심 · 게살국수','zhuang'),E('12:00','따룬파 마트 · 티셔츠 구매','rtmart'),
@@ -189,12 +190,13 @@ B:[
  ]}
 ]};
 
-let plan='A', day='all', layers=[], activeEventKey='', toastTimer;
+let plan='A', day='all', layers=[], activeEventKey='', toastTimer, routeLookup=new Map(), routeNoLookup=new Map(), activeRouteLayers=[];
 const map=L.map('map',{zoomControl:false}).setView([31.2315,121.481],13);
 L.control.zoom({position:'bottomright'}).addTo(map);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
 
-function clearLayers(){layers.forEach(x=>map.removeLayer(x));layers=[]}
+function clearRouteHighlight(){activeRouteLayers.forEach(x=>map.removeLayer(x));activeRouteLayers=[]}
+function clearLayers(){clearRouteHighlight();layers.forEach(x=>map.removeLayer(x));layers=[]}
 function eventKey(date,time,title){return `${date}|${time}|${title}`}
 function visibleDays(){return plans[plan].map((d,i)=>({...d,index:i})).filter(d=>day==='all'||day===String(d.index))}
 function markerBackground(colors){
@@ -208,12 +210,35 @@ function icon(firstNo,colors,count){
  return L.divIcon({className:'',html:`<div class="num-marker" style="background:${markerBackground(colors)}">${firstNo}${badge}</div>`,iconSize:[34,34],iconAnchor:[17,17],popupAnchor:[0,-15]});
 }
 function popupHtml(group){
- const visits=group.visits.map(v=>`<div class="pop-visit" style="--visitColor:${v.day.color}"><div class="pop-time">#${v.routeNo} · ${v.day.date} · ${v.ev.time}</div><div class="pop-title">${v.ev.title}</div>${v.ev.note?`<div class="pop-note">${v.ev.note}</div>`:''}</div>`).join('');
+ const visits=group.visits.map(v=>`<div class="pop-visit" data-route-no="${v.routeNo}" style="--visitColor:${v.day.color}"><div class="pop-time">#${v.routeNo} · ${v.day.date} · ${v.ev.time}</div><div class="pop-title">${v.ev.title}</div>${v.ev.note?`<div class="pop-note">${v.ev.note}</div>`:''}</div>`).join('');
  return `<div class="pop-place">${group.place.name}</div><div class="pop-address">${group.place.note||''}</div>${visits}`;
 }
 function setActiveEvent(key){
  activeEventKey=key;
  document.querySelectorAll('.event').forEach(el=>el.classList.toggle('active-event',el.dataset.key===key));
+}
+function nextTravelVisit(visit){
+ if(!visit)return null;
+ let next=visit.next;
+ while(next && next.p.lat===visit.p.lat && next.p.lon===visit.p.lon)next=next.next;
+ return next;
+}
+function highlightNextRoute(key){
+ clearRouteHighlight();
+ const visit=routeLookup.get(key); const next=nextTravelVisit(visit);
+ if(!visit||!next)return;
+ const coords=[[visit.p.lat,visit.p.lon],[next.p.lat,next.p.lon]];
+ const halo=L.polyline(coords,{color:'#fff',weight:11,opacity:.92,lineCap:'round',lineJoin:'round',interactive:false}).addTo(map);
+ const line=L.polyline(coords,{color:'#ff8a1f',weight:7,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(map);
+ activeRouteLayers.push(halo,line); halo.bringToFront(); line.bringToFront();
+}
+function activateRouteNo(routeNo,scroll=true){
+ const visit=routeNoLookup.get(routeNo); if(!visit)return;
+ setActiveEvent(visit.key); highlightNextRoute(visit.key);
+ if(scroll){
+   const el=[...document.querySelectorAll('.event')].find(x=>x.dataset.key===visit.key);
+   if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+ }
 }
 function showToast(message){
  const el=document.getElementById('toast');
@@ -221,22 +246,28 @@ function showToast(message){
  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2400);
 }
 function scrollToEvent(date,time,title){
- const key=eventKey(date,time,title); setActiveEvent(key);
+ const key=eventKey(date,time,title); setActiveEvent(key); highlightNextRoute(key);
  const el=[...document.querySelectorAll('.event')].find(x=>x.dataset.key===key);
  if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function findPlaceMarker(placeKey){return layers.find(l=>l instanceof L.Marker && l._placeKey===placeKey)}
 function draw(){
- clearLayers(); let bounds=[]; let seq=1; const groups=new Map(); const lineLayers=[];
+ clearLayers(); routeLookup=new Map(); routeNoLookup=new Map();
+ let bounds=[]; let seq=1; const groups=new Map(); const lineLayers=[];
  visibleDays().forEach(d=>{
-   const pts=[];
+   const dayVisits=[];
    d.events.forEach(ev=>{
      if(!ev.place)return; const p=places[ev.place]; if(!p)return;
-     const routeNo=seq++; pts.push([p.lat,p.lon]); bounds.push([p.lat,p.lon]);
+     const routeNo=seq++; const key=eventKey(d.date,ev.time,ev.title); bounds.push([p.lat,p.lon]);
+     const visit={day:d,ev,p,routeNo,key,next:null}; dayVisits.push(visit);
      if(!groups.has(ev.place))groups.set(ev.place,{placeKey:ev.place,place:p,visits:[]});
-     groups.get(ev.place).visits.push({day:d,ev,routeNo});
+     groups.get(ev.place).visits.push(visit);
    });
-   if(pts.length>1)lineLayers.push(L.polyline(pts,{color:d.color,weight:3,opacity:.58,dashArray:'7 7'}));
+   dayVisits.forEach((visit,i)=>{
+     visit.next=dayVisits[i+1]||null; routeLookup.set(visit.key,visit); routeNoLookup.set(visit.routeNo,visit);
+   });
+   const pts=dayVisits.map(v=>[v.p.lat,v.p.lon]);
+   if(pts.length>1)lineLayers.push(L.polyline(pts,{color:d.color,weight:3,opacity:.50,dashArray:'7 7'}));
  });
  lineLayers.forEach(line=>{line.addTo(map);layers.push(line)});
  groups.forEach(group=>{
@@ -245,9 +276,16 @@ function draw(){
    marker._placeKey=group.placeKey;
    marker.bindPopup(popupHtml(group));
    marker.on('click',()=>scrollToEvent(first.day.date,first.ev.time,first.ev.title));
+   marker.on('popupopen',()=>{
+     const node=marker.getPopup().getElement();
+     node?.querySelectorAll('.pop-visit[data-route-no]').forEach(el=>{
+       el.addEventListener('click',()=>activateRouteNo(Number(el.dataset.routeNo),true));
+     });
+   });
    layers.push(marker);
  });
  if(bounds.length){map.fitBounds(bounds,{padding:[42,42],maxZoom:14})}
+ if(activeEventKey)highlightNextRoute(activeEventKey);
  document.getElementById('mapLabel').textContent=`Plan ${plan} · ${day==='all'?'전체':plans[plan][Number(day)].date}`;
 }
 function renderTimeline(){
@@ -263,12 +301,12 @@ function renderTimeline(){
      row.innerHTML=`<div class="time">${ev.time}</div><div class="dot" style="background:${p?d.color:'transparent'}"></div><div class="copy"><b>${ev.title}${ev.optional?'<span class="tag">선택</span>':''}</b><small>${detail}</small></div>`;
      if(p){
        row.addEventListener('click',()=>{
-         setActiveEvent(key); if(isMobile())setScheduleOpen(false); map.flyTo([p.lat,p.lon],15,{duration:.7});
+         setActiveEvent(key); highlightNextRoute(key); if(isMobile())setScheduleOpen(false); map.flyTo([p.lat,p.lon],15,{duration:.7});
          setTimeout(()=>findPlaceMarker(ev.place)?.openPopup(),700);
        });
      }else{
        row.title='위치 정보 없음';
-       row.addEventListener('click',()=>{setActiveEvent(key);showToast(ev.note||'위치 정보 없음')});
+       row.addEventListener('click',()=>{setActiveEvent(key);clearRouteHighlight();showToast(ev.note||'위치 정보 없음')});
      }
      sec.appendChild(row);
    }); root.appendChild(sec);
